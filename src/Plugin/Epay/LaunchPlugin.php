@@ -6,6 +6,8 @@ namespace Yansongda\Pay\Plugin\Epay;
 
 use Closure;
 use Yansongda\Pay\Contract\PluginInterface;
+use Yansongda\Pay\Exception\Exception;
+use Yansongda\Pay\Exception\InvalidResponseException;
 use Yansongda\Pay\Logger;
 use Yansongda\Pay\Rocket;
 use Yansongda\Supports\Collection;
@@ -15,6 +17,13 @@ use function Yansongda\Pay\verify_epay_sign;
 
 class LaunchPlugin implements PluginInterface
 {
+    /**
+     * @param Rocket $rocket
+     * @param Closure $next
+     * @return Rocket
+     * @throws InvalidResponseException
+     * @throws \Yansongda\Pay\Exception\InvalidConfigException
+     */
     public function assembly(Rocket $rocket, Closure $next): Rocket
     {
         /* @var Rocket $rocket */
@@ -23,7 +32,7 @@ class LaunchPlugin implements PluginInterface
 
         if (should_do_http_request($rocket->getDirection())) {
             $response = Collection::wrap($rocket->getDestination());
-            $result = $response->get($this->getResultKey($rocket->getPayload()));
+            $result = $response->get($rocket->getPayload());
 
             $this->verifySign($rocket->getParams(), $response, $result);
 
@@ -35,12 +44,20 @@ class LaunchPlugin implements PluginInterface
         return $rocket;
     }
 
+    /**
+     * @param array $params
+     * @param Collection $response
+     * @param array|null $result
+     * @return void
+     * @throws InvalidResponseException
+     * @throws \Yansongda\Pay\Exception\InvalidConfigException
+     */
     protected function verifySign(array $params, Collection $response, ?array $result): void
     {
         $sign = $response->get('sign', '');
 
         if ('' === $sign || is_null($result)) {
-            throw new InvalidResponseException(Exception::INVALID_RESPONSE_SIGN, 'Verify Alipay Response Sign Failed: sign is empty', $response);
+            throw new InvalidResponseException(Exception::INVALID_RESPONSE_SIGN, 'Verify Epay Response Sign Failed: sign is empty', $response);
         }
 
         verify_epay_sign($params, json_encode($result, JSON_UNESCAPED_UNICODE), $sign);

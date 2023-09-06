@@ -369,6 +369,12 @@ function verify_unipay_sign(array $params, string $contents, string $sign): void
     }
 }
 
+/**
+ * @param array $params
+ * @return array
+ * @throws ContainerException
+ * @throws ServiceNotFoundException
+ */
 function get_epay_config(array $params): array
 {
     $epay = Pay::get(ConfigInterface::class)->get('epay');
