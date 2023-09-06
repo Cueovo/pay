@@ -18,11 +18,13 @@ use Yansongda\Pay\Exception\ContainerNotFoundException;
 use Yansongda\Pay\Exception\ServiceNotFoundException;
 use Yansongda\Pay\Packer\JsonPacker;
 use Yansongda\Pay\Provider\Alipay;
+use Yansongda\Pay\Provider\Epay;
 use Yansongda\Pay\Provider\Unipay;
 use Yansongda\Pay\Provider\Wechat;
 use Yansongda\Pay\Service\AlipayServiceProvider;
 use Yansongda\Pay\Service\ConfigServiceProvider;
 use Yansongda\Pay\Service\ContainerServiceProvider;
+use Yansongda\Pay\Service\EpayServiceProvider;
 use Yansongda\Pay\Service\EventServiceProvider;
 use Yansongda\Pay\Service\HttpServiceProvider;
 use Yansongda\Pay\Service\LoggerServiceProvider;
@@ -33,6 +35,7 @@ use Yansongda\Pay\Service\WechatServiceProvider;
  * @method static Alipay alipay(array $config = [], $container = null)
  * @method static Wechat wechat(array $config = [], $container = null)
  * @method static Unipay unipay(array $config = [], $container = null)
+ * @method static Epay epay(array $config = [], $container = null)
  */
 class Pay
 {
@@ -58,6 +61,7 @@ class Pay
         AlipayServiceProvider::class,
         WechatServiceProvider::class,
         UnipayServiceProvider::class,
+        EpayServiceProvider::class,
     ];
 
     /**
