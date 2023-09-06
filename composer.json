@@ -1,7 +1,7 @@
 {
     "name": "cueovo/pay",
     "description": "可能是我用过的最优雅的 Alipay 和 WeChat 的支付 SDK 扩展包了",
-    "keywords": ["alipay", "wechat", "pay"],
+    "keywords": ["alipay", "wechat", "epay", "pay"],
     "type": "library",
     "license": "MIT",
     "support": {
