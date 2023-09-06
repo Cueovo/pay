@@ -27,8 +27,7 @@ class Epay extends AbstractProvider
      */
     public function __call(string $shortcut, array $params)
     {
-        $plugin = '\\Yansongda\\Pay\\Plugin\\Epay\\Shortcut\\'.
-            Str::studly($shortcut).'Shortcut';
+        $plugin = '\\Yansongda\\Pay\\Plugin\\Epay\\Shortcut\\' . Str::studly($shortcut) . 'Shortcut';
 
         return $this->call($plugin, ...$params);
     }
