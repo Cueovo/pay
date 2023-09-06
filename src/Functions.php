@@ -368,3 +368,40 @@ function verify_unipay_sign(array $params, string $contents, string $sign): void
         throw new InvalidResponseException(Exception::INVALID_RESPONSE_SIGN, 'Verify Unipay Response Sign Failed', func_get_args());
     }
 }
+
+function get_epay_config(array $params): array
+{
+    $epay = Pay::get(ConfigInterface::class)->get('epay');
+
+    return $epay[get_tenant($params)] ?? [];
+}
+
+/**
+ * @param array $params
+ * @param array $payload
+ * @return string
+ * @throws InvalidConfigException
+ */
+function verify_epay_sign(array $params, array $payload): string
+{
+    $key  = get_epay_config($params)['pay_key'] ?? null;
+
+    if (empty($key)) {
+        throw new InvalidConfigException(Exception::EPAY_CONFIG_ERROR, 'Missing Epay Config -- [pay_key]');
+    }
+
+    ksort($params);
+
+    $buff = '';
+
+    foreach($payload as $k => $v){
+        if($k != "sign" && $k != "sign_type" && $v!=''){
+            $buff .= $k.'='.$v.'&';
+        }
+    }
+
+    $buff = substr($buff,0,-1);
+    $sign = md5($buff.'key='.$key);
+
+    return $sign;
+}

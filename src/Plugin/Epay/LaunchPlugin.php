@@ -11,6 +11,7 @@ use Yansongda\Pay\Rocket;
 use Yansongda\Supports\Collection;
 
 use function Yansongda\Pay\should_do_http_request;
+use function Yansongda\Pay\verify_epay_sign;
 
 class LaunchPlugin implements PluginInterface
 {
@@ -33,4 +34,16 @@ class LaunchPlugin implements PluginInterface
 
         return $rocket;
     }
+
+    protected function verifySign(array $params, Collection $response, ?array $result): void
+    {
+        $sign = $response->get('sign', '');
+
+        if ('' === $sign || is_null($result)) {
+            throw new InvalidResponseException(Exception::INVALID_RESPONSE_SIGN, 'Verify Alipay Response Sign Failed: sign is empty', $response);
+        }
+
+        verify_epay_sign($params, json_encode($result, JSON_UNESCAPED_UNICODE), $sign);
+    }
+
 }

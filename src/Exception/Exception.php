@@ -44,8 +44,8 @@ class Exception extends \Exception
     public const WECHAT_CONFIG_ERROR = 3006;
 
     public const UNIPAY_CONFIG_ERROR = 3007;
-
     public const INVALID_PACKER = 3008;
+    public const EPAY_CONFIG_ERROR = 3009;
 
     /*
      * 关于参数.
