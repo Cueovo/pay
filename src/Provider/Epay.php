@@ -13,6 +13,7 @@ use Yansongda\Pay\Exception\ContainerException;
 use Yansongda\Pay\Exception\InvalidParamsException;
 use Yansongda\Pay\Exception\ServiceNotFoundException;
 use Yansongda\Supports\Collection;
+use Yansongda\Supports\Str;
 
 /**
  * @method ResponseInterface web(array $order)      网页支付
