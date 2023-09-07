@@ -8,6 +8,7 @@ use Closure;
 use Yansongda\Pay\Contract\PluginInterface;
 use Yansongda\Pay\Logger;
 use Yansongda\Pay\Rocket;
+use Yansongda\Supports\Str;
 use function Yansongda\Pay\get_epay_config;
 use function Yansongda\Pay\get_tenant;
 
@@ -19,7 +20,6 @@ class PreparePlugin implements PluginInterface
         Logger::debug('[epay][PreparePlugin] 插件开始装载',  ['rocket' => $rocket]);
 
         $rocket->mergePayload($this->getPayload($rocket->getParams()));
-
         Logger::info('[epay][PreparePlugin] 插件装载完毕', ['rocket' => $rocket]);
 
         return $next($rocket);
@@ -27,14 +27,29 @@ class PreparePlugin implements PluginInterface
 
     protected function getPayload(array $params): array
     {
+        $tenant = get_tenant($params);
         $config = get_epay_config($params);
 
-        return [
+        $init = [
             'pid' => $config['pay_id'],
             'sign_type' => strtoupper('MD5'),
             'notify_url' => $this->getNotifyUrl($params, $config),
             'return_url' => $this->getReturnUrl($params, $config),
         ];
+
+        return array_merge(
+            $init,
+            array_filter($params, fn ($v, $k) => !Str::startsWith(strval($k), '_'), ARRAY_FILTER_USE_BOTH),
+        );
+    }
+
+    protected function getMethod(array $params, array $config): string
+    {
+        if (!empty($params['_method'])) {
+            return $params['_method'];
+        }
+
+        return $config['method'] ?? 'POST';
     }
 
     protected function getMethod(array $params, array $config): string

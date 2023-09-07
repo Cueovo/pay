@@ -75,7 +75,7 @@ class RadarSignPlugin implements PluginInterface
         $contents = array_filter($payload->get('param', []), fn ($v, $k) => !Str::startsWith(strval($k), '_'), ARRAY_FILTER_USE_BOTH);
 
         $rocket->setPayload(
-            $payload->merge(['param' => json_encode($contents)])
+            $payload->merge(['param' => urlencode(json_encode($contents))])
         );
     }
 
@@ -87,7 +87,7 @@ class RadarSignPlugin implements PluginInterface
     {
         $config = get_epay_config([]);
 
-        $prestr = $rocket->getPayload()->merge($rocket->getParams())->sortKeys()->toString();
+        $prestr = $rocket->getPayload()->sortKeys()->toString();
 
         $sign = md5($prestr. $config['pay_key']);
         return $sign;
