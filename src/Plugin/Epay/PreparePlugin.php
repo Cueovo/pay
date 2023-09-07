@@ -31,15 +31,19 @@ class PreparePlugin implements PluginInterface
 
         return [
             'pid' => $config['pay_id'],
-            'partner' => $config['pay_id'],
-            'key' => $config['pay_key'],
             'sign_type' => strtoupper('MD5'),
-            'input_charset' => strtolower('utf-8'),
-            'transport' => 'http',
-            'apiurl' => $config('pay_url'),
             'notify_url' => $this->getNotifyUrl($params, $config),
             'return_url' => $this->getReturnUrl($params, $config),
         ];
+    }
+
+    protected function getMethod(array $params, array $config): string
+    {
+        if (!empty($params['_method'])) {
+            return $params['_method'];
+        }
+
+        return $config['method'] ?? 'POST';
     }
 
     protected function getReturnUrl(array $params, array $config): string
@@ -59,4 +63,5 @@ class PreparePlugin implements PluginInterface
 
         return $config['notify_url'] ?? '';
     }
+
 }

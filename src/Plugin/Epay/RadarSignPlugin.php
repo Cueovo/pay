@@ -3,6 +3,7 @@
 namespace Yansongda\Pay\Plugin\Epay;
 
 use Closure;
+use GuzzleHttp\Psr7\Utils;
 use Yansongda\Pay\Contract\PluginInterface;
 use Yansongda\Pay\Exception\ContainerException;
 use Yansongda\Pay\Exception\ServiceNotFoundException;
@@ -44,14 +45,14 @@ class RadarSignPlugin implements PluginInterface
      */
     protected function reRadar(Rocket $rocket): void
     {
-        $params = $rocket->getParams();
+        $body = $this->getBody($rocket->getPayload());
+        $radar = $rocket->getRadar();
 
-        $rocket->setRadar(new Request(
-            $this->getMethod($params),
-            $this->getUrl($params),
-            $this->getHeaders(),
-            $this->getBody($rocket->getPayload()),
-        ));
+        if (!empty($body) && !empty($radar)) {
+            $radar = $radar->withBody(Utils::streamFor($body));
+
+            $rocket->setRadar($radar);
+        }
     }
 
     /**
@@ -69,12 +70,12 @@ class RadarSignPlugin implements PluginInterface
 
     protected function formatPayload(Rocket $rocket): void
     {
-        $payload = $rocket->getPayload()->filter(fn ($v, $k) => '' !== $v && !is_null($v) && 'sign' != $k);
+        $payload = $rocket->getPayload()->filter(fn ($v, $k) => '' !== $v && !is_null($v) && 'sign' != $k && 'sign_type' != $k);
 
-        $contents = array_filter($payload->get('biz_content', []), fn ($v, $k) => !Str::startsWith(strval($k), '_'), ARRAY_FILTER_USE_BOTH);
+        $contents = array_filter($payload->get('param', []), fn ($v, $k) => !Str::startsWith(strval($k), '_'), ARRAY_FILTER_USE_BOTH);
 
         $rocket->setPayload(
-            $payload->merge(['biz_content' => json_encode($contents)])
+            $payload->merge(['param' => json_encode($contents)])
         );
     }
 
@@ -84,28 +85,12 @@ class RadarSignPlugin implements PluginInterface
      */
     protected function getSign(Rocket $rocket): string
     {
-        return "sign";
-    }
+        $config = get_epay_config([]);
 
-    /**
-     * @param array $params
-     * @return string
-     * @throws ContainerException
-     * @throws ServiceNotFoundException
-     */
-    protected function getUrl(array $params): string
-    {
-        $config = get_epay_config($params);
+        $prestr = $rocket->getPayload()->merge($rocket->getParams())->sortKeys()->toString();
 
-        return $config['pay_url'];
-    }
-
-    /**
-     * @return string
-     */
-    protected function getMethod(): string
-    {
-        return strtoupper($params['_method'] ?? 'POST');
+        $sign = md5($prestr. $config['pay_key']);
+        return $sign;
     }
 
     /**

@@ -388,7 +388,7 @@ function get_epay_config(array $params): array
  * @return string
  * @throws InvalidConfigException
  */
-function verify_epay_sign(array $params, array $payload): string
+function verify_epay_sign(array $params, string $payload): void
 {
     $key  = get_epay_config($params)['pay_key'] ?? null;
 
@@ -396,18 +396,11 @@ function verify_epay_sign(array $params, array $payload): string
         throw new InvalidConfigException(Exception::EPAY_CONFIG_ERROR, 'Missing Epay Config -- [pay_key]');
     }
 
-    ksort($params);
+    $sign = md5($payload . $key);
 
-    $buff = '';
+    $result = $sign == $params['sign'];
 
-    foreach($payload as $k => $v){
-        if($k != "sign" && $k != "sign_type" && $v!=''){
-            $buff .= $k.'='.$v.'&';
-        }
+    if (!$result) {
+        throw new InvalidResponseException(Exception::INVALID_RESPONSE_SIGN, 'Verify Epay Response Sign Failed', func_get_args());
     }
-
-    $buff = substr($buff,0,-1);
-    $sign = md5($buff.'key='.$key);
-
-    return $sign;
 }

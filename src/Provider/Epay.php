@@ -9,9 +9,15 @@ use GuzzleHttp\Psr7\ServerRequest;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Yansongda\Pay\Event;
 use Yansongda\Pay\Exception\ContainerException;
 use Yansongda\Pay\Exception\InvalidParamsException;
 use Yansongda\Pay\Exception\ServiceNotFoundException;
+use Yansongda\Pay\Plugin\Epay\CallbackPlugin;
+use Yansongda\Pay\Plugin\Epay\LaunchPlugin;
+use Yansongda\Pay\Plugin\Epay\PreparePlugin;
+use Yansongda\Pay\Plugin\Epay\RadarSignPlugin;
+use Yansongda\Pay\Plugin\ParserPlugin;
 use Yansongda\Supports\Collection;
 use Yansongda\Supports\Str;
 
@@ -52,18 +58,44 @@ class Epay extends AbstractProvider
         return [];
     }
 
-    public function callback(ServerRequestInterface|array|null $contents = null, ?array $params = null): Collection
+    public function callback(null|array|ServerRequestInterface $contents = null, ?array $params = null): Collection
     {
-        return [];
+        $request = $this->getCallbackParams($contents);
+        Event::dispatch(new Event\CallbackReceived('epay', $request->all(), $params, null));
+
+        return $this->pay(
+            [CallbackPlugin::class],
+            $request->merge($params)->all()
+        );
     }
 
     public function success(): ResponseInterface
     {
-        return [];
+        return new Response(200, [], 'success');
     }
 
     public function mergeCommonPlugins(array $plugins): array
     {
-        return [];
+        return array_merge(
+            [PreparePlugin::class],
+            $plugins,
+            [RadarSignPlugin::class],
+            [LaunchPlugin::class, ParserPlugin::class],
+        );
+    }
+
+    protected function getCallbackParams(null|array|ServerRequestInterface $contents = null): Collection
+    {
+        if (is_array($contents)) {
+            return Collection::wrap($contents);
+        }
+
+        if ($contents instanceof ServerRequestInterface) {
+            return Collection::wrap($contents->getParsedBody());
+        }
+
+        $request = ServerRequest::fromGlobals();
+
+        return Collection::wrap($request->getParsedBody());
     }
 }

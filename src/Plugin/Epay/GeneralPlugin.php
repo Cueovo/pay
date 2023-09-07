@@ -10,7 +10,7 @@ use Yansongda\Pay\Contract\PluginInterface;
 use Yansongda\Pay\Exception\ContainerException;
 use Yansongda\Pay\Exception\ServiceNotFoundException;
 use Yansongda\Pay\Logger;
-use Yansongda\Pay\Provider\Epay;
+use Yansongda\Pay\Request;
 use Yansongda\Pay\Rocket;
 use function Yansongda\Pay\get_epay_config;
 
@@ -33,12 +33,6 @@ abstract class GeneralPlugin implements PluginInterface
         return $next($rocket);
     }
 
-    /**
-     * @param Rocket $rocket
-     * @return RequestInterface
-     * @throws ContainerException
-     * @throws ServiceNotFoundException
-     */
     protected function getRequest(Rocket $rocket): RequestInterface
     {
         return new Request(
@@ -48,20 +42,11 @@ abstract class GeneralPlugin implements PluginInterface
         );
     }
 
-    /**
-     * @return string
-     */
     protected function getMethod(): string
     {
         return 'POST';
     }
 
-    /**
-     * @param Rocket $rocket
-     * @return string
-     * @throws ContainerException
-     * @throws ServiceNotFoundException
-     */
     protected function getUrl(Rocket $rocket): string
     {
         $url = $this->getUri($rocket);
@@ -72,12 +57,9 @@ abstract class GeneralPlugin implements PluginInterface
 
         $config = get_epay_config($rocket->getParams());
 
-        return $config['pay_url'];
+        return $config['pay_url'] . $url;
     }
 
-    /**
-     * @return string[]
-     */
     protected function getHeaders(): array
     {
         return [
@@ -86,8 +68,5 @@ abstract class GeneralPlugin implements PluginInterface
         ];
     }
 
-    abstract protected function doSomething(Rocket $rocket): void;
-
     abstract protected function getUri(Rocket $rocket): string;
-
 }
